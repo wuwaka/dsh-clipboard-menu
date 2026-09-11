@@ -29,7 +29,7 @@ Right-click the DeepSeek Harness composer and get a menu:
 | 📥 Paste | Insert the system clipboard at the caret |
 | 🗂️ Select All | Select the whole field |
 | 🌐 Search | Search the selected text in your default browser, with the current engine shown on the right (greyed out without a selection) |
-| 🌐 Search engine… | Switch between Baidu / Bing / Google / DuckDuckGo |
+| 🌐 Search engine… | **Hovering** it expands the engine list at its bottom-right: Baidu / Bing / Google / DuckDuckGo / Custom |
 
 Select text in a **read-only** surface — an AI reply, a document preview, a code block — and right-click for three entries:
 
@@ -44,9 +44,17 @@ Select text in a **read-only** surface — an AI reply, a document preview, a co
 
 **A page cannot read the browser's own default search engine** — no web API exposes it, deliberately, so that sites cannot profile visitors. The order is therefore:
 
-1. **Whichever you picked** — one click in "Search engine…" stores it in `localStorage` and it sticks
+1. **Whichever you picked** — hover "Search engine…" and click one in the list; it is stored in `localStorage` and sticks
 2. Otherwise a guess from the UI language: Chinese → **Baidu**, anything else → Google
-3. `window.__DSH_CLIPBOARD_MENU_SEARCH__` overrides the URL prefix outright (developer escape hatch)
+3. `window.__DSH_CLIPBOARD_MENU_SEARCH__` overrides outright (developer escape hatch)
+
+The list's "**Custom**" entry takes a URL template, using §{query}§ for the keywords:
+
+§§§
+https://search.example.org/find?q={query}
+§§§
+
+Omitting §{query}§ works too — the query is appended then.
 
 **The browser itself needs no configuration.** `window.open` goes through the desktop shell's `shell.openExternal`, which hands the URL to your operating system's default browser — whatever you already set.
 
@@ -114,7 +122,7 @@ npm install --no-save jsdom
 node test/smoke.cjs
 ```
 
-34 assertions: menu rendering, cut/copy disabled without a selection, textarea caret insertion plus the `input` event, the synthetic paste event reaching a `contenteditable` listener, read-only text without a selection not being intercepted, Copy and Copy-as-plain-text on a read-only selection, Copy not stealing focus, the menu surviving a scroll (while an outside mousedown still closes it), the search entry opening the browser with the selection, a Chinese UI defaulting to Baidu and an English one to Google, a picked engine being remembered, one icon per entry, the menu staying uninstalled in a browser, and the force flag opting back in.
+45 assertions: menu rendering, cut/copy disabled without a selection, textarea caret insertion plus the `input` event, the synthetic paste event reaching a `contenteditable` listener, read-only text without a selection not being intercepted, Copy and Copy-as-plain-text on a read-only selection, Copy not stealing focus, the menu surviving a scroll (while an outside mousedown still closes it), the search entry opening the browser with the selection, a Chinese UI defaulting to Baidu and an English one to Google, the hover submenu opening without closing the main menu, a picked engine being remembered, a custom template's {query} being substituted, one icon per entry, the menu staying uninstalled in a browser, and the force flag opting back in.
 
 ## ⚠️ Limitations
 

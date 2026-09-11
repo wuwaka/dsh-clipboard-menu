@@ -60,8 +60,7 @@ function fire(el, type, init) {
   return ev;
 }
 
-function menuItems(d) {
-  const menu = d.querySelector("[data-dsh-clipboard-menu]");
+function readItems(menu) {
   if (!menu) return null;
   return Array.from(menu.querySelectorAll("button.dcm-item")).map((b) => {
     const lb = b.querySelector(".dcm-label");
@@ -73,6 +72,14 @@ function menuItems(d) {
       el: b
     };
   });
+}
+
+function menuItems(d) {
+  return readItems(d.querySelector("[data-dsh-clipboard-menu]:not(.dcm-submenu)"));
+}
+
+function submenuItems(d) {
+  return readItems(d.querySelector("[data-dsh-clipboard-menu].dcm-submenu"));
 }
 
 const results = [];
@@ -259,7 +266,7 @@ function check(name, cond, extra) {
     check("icons: label text unaffected", labels.length === 6 && labels[0].textContent === "\u526a\u5207");
   }
 
-  // ---------- case 10: the engine chooser remembers the pick ----------
+  // ---------- case 10: the engine submenu opens on hover ----------
   {
     const { w, d, mod, getOpened, errors } = boot('<!doctype html><html lang="zh"><body><textarea id="t">hello</textarea></body></html>');
     mod.apply();
@@ -268,19 +275,19 @@ function check(name, cond, extra) {
     ta.setSelectionRange(0, 5);
 
     fire(ta, "contextmenu", { clientX: 10, clientY: 10 });
-    menuItems(d)[5].el.click();
-    await new Promise((res) => setTimeout(res, 10));
-    const engines = menuItems(d);
-    check("engine: chooser lists every engine", !!engines && engines.length === 4, engines ? engines.map((i) => i.label).join("/") : "none");
-    check("engine: current one is marked", !!engines && engines[0].el.querySelector(".dcm-hint").textContent === "\u5f53\u524d");
+    menuItems(d)[5].el.dispatchEvent(new w.MouseEvent("mouseenter"));
+    const engines = submenuItems(d);
+    check("engine: hovering the row opens the submenu", !!engines && engines.length === 5, engines ? engines.map((i) => i.label).join("/") : "none");
+    check("engine: current one is marked", !!engines && engines[0].hint === "\u5f53\u524d", engines ? "hint=" + engines[0].hint : "");
+    check("engine: opening it does not close the main menu", !!menuItems(d));
 
     engines[2].el.click();
     await new Promise((res) => setTimeout(res, 10));
     check("engine: pick is persisted", w.localStorage.getItem("dsh-clipboard-menu.engine") === "google");
-
+    check("engine: submenu closes on pick", !submenuItems(d));
     check("engine: reopening raised nothing", errors.length === 0, errors.join(" | "));
     const back = menuItems(d);
-    check("engine: the menu comes back after picking", !!back && back.length === 6, back ? back.map((i) => i.label).join("/") : "none");
+    check("engine: the main menu is still there", !!back && back.length === 6, back ? back.map((i) => i.label).join("/") : "none");
     check("engine: the hint now shows the pick", !!back && back[4].hint === "Google", back ? "hint=" + back[4].hint : "");
 
     ta.focus();
@@ -289,6 +296,35 @@ function check(name, cond, extra) {
     menuItems(d)[4].el.click();
     await new Promise((res) => setTimeout(res, 10));
     check("engine: remembered pick is used", /google\.com\/search\?q=hello$/.test(getOpened()), "opened=" + JSON.stringify(getOpened()));
+  }
+
+  // ---------- case 10b: a custom search URL ----------
+  {
+    const { w, d, mod, getOpened } = boot('<!doctype html><html lang="zh"><body><textarea id="t">hello</textarea></body></html>');
+    mod.apply();
+    const ta = d.getElementById("t");
+    ta.focus();
+    ta.setSelectionRange(0, 5);
+
+    fire(ta, "contextmenu", { clientX: 10, clientY: 10 });
+    menuItems(d)[5].el.dispatchEvent(new w.MouseEvent("mouseenter"));
+    submenuItems(d)[4].el.click();                       // the custom entry
+    const field = d.querySelector("[data-dsh-clipboard-menu].dcm-submenu .dcm-input");
+    check("custom: picking it reveals a URL field", !!field);
+
+    field.value = "https://search.example.org/find?q={query}";
+    field.dispatchEvent(new w.KeyboardEvent("keydown", { key: "Enter", bubbles: true, cancelable: true }));
+    await new Promise((res) => setTimeout(res, 10));
+    check("custom: the template is stored", w.localStorage.getItem("dsh-clipboard-menu.custom") === "https://search.example.org/find?q={query}");
+    check("custom: it becomes the chosen engine", w.localStorage.getItem("dsh-clipboard-menu.engine") === "custom");
+    check("custom: the submenu closes and the menu returns", !submenuItems(d) && !!menuItems(d));
+
+    const back = menuItems(d);
+    check("custom: the hint shows its host", !!back && back[4].hint === "search.example.org", back ? "hint=" + back[4].hint : "");
+
+    back[4].el.click();
+    await new Promise((res) => setTimeout(res, 10));
+    check("custom: {query} is substituted", getOpened() === "https://search.example.org/find?q=hello", "opened=" + JSON.stringify(getOpened()));
   }
 
   // ---------- case 11: an english UI guesses google ----------
