@@ -1,6 +1,6 @@
 const fs = require("node:fs");
 const path = require("node:path");
-const { JSDOM } = require("jsdom");
+const { JSDOM, VirtualConsole } = require("jsdom");
 
 const CLIENT = path.join(__dirname, "..", "lib", "client.js");
 const code = fs.readFileSync(CLIENT, "utf8");
@@ -14,7 +14,13 @@ const DESKTOP_QUERY =
 function boot(html, opts) {
   const desktop = !opts || opts.desktop !== false;
   const url = "http://127.0.0.1:43120/" + (desktop ? DESKTOP_QUERY : "");
-  const dom = new JSDOM(html, { runScripts: "outside-only", pretendToBeVisual: true, url });
+  // jsdom reports listener exceptions to the virtual console instead of
+  // rethrowing them, so collect them and let assertions see them.
+  const errors = [];
+  const vc = new VirtualConsole();
+  vc.on("jsdomError", (e) => errors.push(String((e && e.message) || e)));
+  vc.on("error", (m) => errors.push(String(m)));
+  const dom = new JSDOM(html, { runScripts: "outside-only", pretendToBeVisual: true, url, virtualConsole: vc });
   const w = dom.window;
   const d = w.document;
 
@@ -45,7 +51,7 @@ function boot(html, opts) {
   let mod;
   w.__ModuleLoader__ = { load: (def) => { mod = def.factory(() => { throw new Error("no require"); }); } };
   w.eval(code);
-  return { w, d, mod, setClip: (t) => { clip = t; }, getClip: () => clip, getOpened: () => opened };
+  return { w, d, mod, setClip: (t) => { clip = t; }, getClip: () => clip, getOpened: () => opened, errors };
 }
 
 function fire(el, type, init) {
@@ -255,7 +261,7 @@ function check(name, cond, extra) {
 
   // ---------- case 10: the engine chooser remembers the pick ----------
   {
-    const { w, d, mod, getOpened } = boot('<!doctype html><html lang="zh"><body><textarea id="t">hello</textarea></body></html>');
+    const { w, d, mod, getOpened, errors } = boot('<!doctype html><html lang="zh"><body><textarea id="t">hello</textarea></body></html>');
     mod.apply();
     const ta = d.getElementById("t");
     ta.focus();
@@ -271,6 +277,11 @@ function check(name, cond, extra) {
     engines[2].el.click();
     await new Promise((res) => setTimeout(res, 10));
     check("engine: pick is persisted", w.localStorage.getItem("dsh-clipboard-menu.engine") === "google");
+
+    check("engine: reopening raised nothing", errors.length === 0, errors.join(" | "));
+    const back = menuItems(d);
+    check("engine: the menu comes back after picking", !!back && back.length === 6, back ? back.map((i) => i.label).join("/") : "none");
+    check("engine: the hint now shows the pick", !!back && back[4].hint === "Google", back ? "hint=" + back[4].hint : "");
 
     ta.focus();
     ta.setSelectionRange(0, 5);
