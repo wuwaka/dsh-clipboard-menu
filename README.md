@@ -1,7 +1,8 @@
 # dsh-clipboard-menu
 
 Adds a right-click **Cut / Copy / Paste / Select All** menu to DeepSeek Harness
-composer inputs.
+composer inputs **inside desktop shells**, which ship no context menu of their
+own.
 
 ## Why
 
@@ -12,6 +13,19 @@ in the renderer.
 The desktop main process is a packaged bundle (`lib/main.js` +
 `electron-runtime`), so a DSH plugin cannot hook `webContents` and pop a native
 `Menu`. Hence the browser half.
+
+## Scope
+
+The menu is installed **only where the platform has no context menu of its own**.
+A normal browser tab already has a native menu that does more (paste and match
+style, search, inspect), so this plugin deliberately does not install its
+listener there — right-click keeps behaving exactly as the browser intends.
+
+Detection uses the markers DSH Desktop stamps onto the renderer URL
+(`dsh-desktop-mode` and friends) and its preload bridge, plus the runtime signals
+of other embedded shells (Electron, Tauri). To use the menu in a browser on
+purpose, set `window.__DSH_CLIPBOARD_MENU_FORCE__ = true` before the plugin
+loads.
 
 ## Install
 
@@ -65,7 +79,8 @@ node test/smoke.cjs
 
 Covers menu rendering, disabled state without a selection, textarea caret
 insertion plus the `input` event, the synthetic paste event reaching a
-`contenteditable` listener, and non-editable targets not being intercepted.
+`contenteditable` listener, non-editable targets not being intercepted, the menu
+staying uninstalled in a plain browser tab, and the force flag opting back in.
 
 ## Limitations
 

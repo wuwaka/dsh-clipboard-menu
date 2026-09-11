@@ -5,8 +5,16 @@ const { JSDOM } = require("jsdom");
 const CLIENT = path.join(__dirname, "..", "lib", "client.js");
 const code = fs.readFileSync(CLIENT, "utf8");
 
-function boot(html) {
-  const dom = new JSDOM(html, { runScripts: "outside-only", pretendToBeVisual: true, url: "http://127.0.0.1:43120/" });
+// DSH Desktop stamps these Electron-owned markers onto the renderer URL; a
+// plain browser tab has none of them.
+const DESKTOP_QUERY =
+  "?dsh-desktop-mode=extended&dsh-desktop-platform=win32&dsh-desktop-material=mica" +
+  "&dsh-desktop-version=2.0.9&dsh-desktop-mica=1";
+
+function boot(html, opts) {
+  const desktop = !opts || opts.desktop !== false;
+  const url = "http://127.0.0.1:43120/" + (desktop ? DESKTOP_QUERY : "");
+  const dom = new JSDOM(html, { runScripts: "outside-only", pretendToBeVisual: true, url });
   const w = dom.window;
   const d = w.document;
 
@@ -138,6 +146,30 @@ function check(name, cond, extra) {
     sel.addRange(r);
     const ev2 = fire(p, "contextmenu", { clientX: 6, clientY: 6 });
     check("non-editable selection is NOT intercepted", !menuItems(d) && ev2.defaultPrevented === false);
+  }
+
+  // ---------- case 5: plain browser -> must stay out of the way entirely ----------
+  {
+    const { d, mod } = boot('<!doctype html><html lang="zh"><body><textarea id="t">abc</textarea></body></html>', { desktop: false });
+    mod.apply();
+    const ta = d.getElementById("t");
+    ta.focus();
+    ta.setSelectionRange(0, 3);
+    const ev = fire(ta, "contextmenu", { clientX: 10, clientY: 10 });
+    check("browser: custom menu NOT installed", !menuItems(d));
+    check("browser: native menu left alone (no preventDefault)", ev.defaultPrevented === false);
+  }
+
+  // ---------- case 6: explicit force flag opts back in ----------
+  {
+    const { w, d, mod } = boot('<!doctype html><html lang="zh"><body><textarea id="t">abc</textarea></body></html>', { desktop: false });
+    w.__DSH_CLIPBOARD_MENU_FORCE__ = true;
+    mod.apply();
+    const ta = d.getElementById("t");
+    ta.focus();
+    ta.setSelectionRange(0, 3);
+    fire(ta, "contextmenu", { clientX: 10, clientY: 10 });
+    check("force flag installs the menu in a browser", !!menuItems(d));
   }
 
   console.log(results.join("\n"));
