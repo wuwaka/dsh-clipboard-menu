@@ -1,7 +1,7 @@
 
 <div align="center">
 
-<img src="assets/logo.svg" width="440" alt="dsh-clipboard-menu">
+<img src="assets/poster.jpg" width="560" alt="dsh-clipboard-menu — DeepSeek Harness 右键剪贴板菜单插件">
 
 **给 DeepSeek Harness 的输入框补上缺失的右键菜单**
 
@@ -12,13 +12,13 @@
 [![topic](https://img.shields.io/badge/topic-dsh--plugin-4d6bfe?style=flat-square)](https://github.com/topics/dsh-plugin)
 [![tested](https://img.shields.io/badge/tested%20on-DSH%200.1.5--rc.1-4d6bfe?style=flat-square)](#)
 
-<img src="assets/preview.png" width="620" alt="在输入框上右键弹出的菜单：剪切 / 复制 / 粘贴 / 全选">
-
 </div>
 
 ## 这是什么
 
 在 DeepSeek Harness 的**输入框上右键**，弹出一个顺手的菜单：
+
+<img src="assets/preview.png" width="620" alt="在输入框上右键弹出的菜单：剪切 / 复制 / 粘贴 / 全选">
 
 | 菜单项 | 说明 |
 | --- | --- |

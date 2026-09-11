@@ -1,7 +1,7 @@
 
 <div align="center">
 
-<img src="assets/logo.svg" width="440" alt="dsh-clipboard-menu">
+<img src="assets/poster.jpg" width="560" alt="dsh-clipboard-menu — a right-click clipboard menu for DeepSeek Harness">
 
 **The right-click menu the DeepSeek Harness composer was missing**
 
@@ -12,13 +12,13 @@
 [![topic](https://img.shields.io/badge/topic-dsh--plugin-4d6bfe?style=flat-square)](https://github.com/topics/dsh-plugin)
 [![tested](https://img.shields.io/badge/tested%20on-DSH%200.1.5--rc.1-4d6bfe?style=flat-square)](#)
 
-<img src="assets/preview.png" width="620" alt="the menu that opens on right-click: Cut / Copy / Paste / Select All">
-
 </div>
 
 ## What it is
 
 Right-click the DeepSeek Harness composer and get a menu:
+
+<img src="assets/preview.png" width="620" alt="the menu that opens on right-click: Cut / Copy / Paste / Select All">
 
 | Item | Action |
 | --- | --- |
