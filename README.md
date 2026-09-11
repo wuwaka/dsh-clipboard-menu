@@ -12,7 +12,7 @@
 [![topic](https://img.shields.io/badge/topic-dsh--plugin-4d6bfe?style=flat-square)](https://github.com/topics/dsh-plugin)
 [![tested](https://img.shields.io/badge/tested%20on-DSH%200.1.5--rc.1-4d6bfe?style=flat-square)](#)
 
-<img src="assets/menu.svg" width="600" alt="右键输入框时弹出的菜单">
+<img src="assets/preview.png" width="620" alt="在输入框上右键弹出的菜单：剪切 / 复制 / 粘贴 / 全选">
 
 </div>
 

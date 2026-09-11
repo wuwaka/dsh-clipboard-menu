@@ -12,7 +12,7 @@
 [![topic](https://img.shields.io/badge/topic-dsh--plugin-4d6bfe?style=flat-square)](https://github.com/topics/dsh-plugin)
 [![tested](https://img.shields.io/badge/tested%20on-DSH%200.1.5--rc.1-4d6bfe?style=flat-square)](#)
 
-<img src="assets/menu.svg" width="600" alt="the menu that opens on right-click">
+<img src="assets/preview.png" width="620" alt="the menu that opens on right-click: Cut / Copy / Paste / Select All">
 
 </div>
 
