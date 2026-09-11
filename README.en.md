@@ -9,6 +9,7 @@
 
 [![license](https://img.shields.io/badge/license-MIT-yellow.svg?style=flat-square)](LICENSE)
 [![release](https://img.shields.io/github/v/release/wuwaka/dsh-clipboard-menu?style=flat-square)](https://github.com/wuwaka/dsh-clipboard-menu/releases)
+[![CI](https://github.com/wuwaka/dsh-clipboard-menu/actions/workflows/ci.yml/badge.svg)](https://github.com/wuwaka/dsh-clipboard-menu/actions/workflows/ci.yml)
 [![stars](https://img.shields.io/github/stars/wuwaka/dsh-clipboard-menu?style=flat-square)](https://github.com/wuwaka/dsh-clipboard-menu/stargazers)
 [![topic](https://img.shields.io/badge/topic-dsh--plugin-4d6bfe?style=flat-square)](https://github.com/topics/dsh-plugin)
 [![tested](https://img.shields.io/badge/tested%20on-DSH%200.1.5--rc.1-4d6bfe?style=flat-square)](#)

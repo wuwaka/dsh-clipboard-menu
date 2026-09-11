@@ -1,7 +1,7 @@
 {
   "name": "dsh-clipboard-menu",
   "version": "0.1.1",
-  "description": "Adds a right-click cut/copy/paste/select-all menu to DeepSeek Harness composer inputs, where the Electron desktop shell provides no context menu.",
+  "description": "Adds a right-click menu to DeepSeek Harness inside desktop shells that ship no context menu: cut, copy, paste and select all in the composer, plus copy and copy-as-plain-text on selected text elsewhere.",
   "type": "module",
   "license": "MIT",
   "main": "lib/index.js",
