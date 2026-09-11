@@ -1,0 +1,10 @@
+# Bundle patch: inserts the host row into the profile roster.
+# The host half is intentionally a no-op; the browser half rides the package's
+# `dsh.client` manifest (the client registry serves lib/client.js) and installs
+# the context-menu listener in the renderer.
+# Install with `dsh plugin --profile <name> add <path-or-github-url>`; this
+# bundle patch is applied automatically, so do NOT insert this row again in the
+# profile patch (duplicate ids crash the loader).
+- insert:
+    - id: dsh-clipboard-menu
+      name: 'dsh-clipboard-menu'

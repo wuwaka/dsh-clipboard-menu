@@ -1,0 +1,49 @@
+{
+  "name": "dsh-clipboard-menu",
+  "version": "0.1.0",
+  "description": "Adds a right-click cut/copy/paste/select-all menu to DeepSeek Harness composer inputs, where the Electron desktop shell provides no context menu.",
+  "type": "module",
+  "license": "MIT",
+  "main": "lib/index.js",
+  "exports": {
+    ".": "./lib/index.js",
+    "./client": "./lib/client.js",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "lib",
+    "cordis.patch.yml",
+    "README.md",
+    "LICENSE"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/wuwaka/dsh-clipboard-menu.git"
+  },
+  "homepage": "https://github.com/wuwaka/dsh-clipboard-menu#readme",
+  "bugs": {
+    "url": "https://github.com/wuwaka/dsh-clipboard-menu/issues"
+  },
+  "keywords": [
+    "deepseek-harness",
+    "dsh-plugin",
+    "context-menu",
+    "clipboard",
+    "paste"
+  ],
+  "scripts": {
+    "test": "node test/smoke.cjs"
+  },
+  "devDependencies": {
+    "jsdom": "^30.0.1"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "inject": [],
+      "platform": "web"
+    }
+  }
+}
