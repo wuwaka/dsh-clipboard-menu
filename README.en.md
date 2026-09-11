@@ -28,7 +28,8 @@ Right-click the DeepSeek Harness composer and get a menu:
 | 📋 Copy | Copy the selected text |
 | 📥 Paste | Insert the system clipboard at the caret |
 | 🗂️ Select All | Select the whole field |
-| 🌐 Search | Search the selected text in your default browser (greyed out without a selection) |
+| 🌐 Search | Search the selected text in your default browser, with the current engine shown on the right (greyed out without a selection) |
+| 🌐 Search engine… | Switch between Baidu / Bing / Google / DuckDuckGo |
 
 Select text in a **read-only** surface — an AI reply, a document preview, a code block — and right-click for three entries:
 
@@ -37,12 +38,17 @@ Select text in a **read-only** surface — an AI reply, a document preview, a co
 | 📋 Copy | Copy with formatting (paste into Word and the styling comes along) |
 | 📝 Copy as plain text | Copy the characters only, which pastes cleanly into a terminal or editor |
 | 🌐 Search | Search the selected text in your default browser |
+| 🌐 Search engine… | Switch engine |
 
-Search goes to Bing by default, which is reachable from most networks. To use another engine, override this before the plugin loads:
+### How the engine is chosen
 
-§§§js
-window.__DSH_CLIPBOARD_MENU_SEARCH__ = "https://duckduckgo.com/?q="
-§§§
+**A page cannot read the browser's own default search engine** — no web API exposes it, deliberately, so that sites cannot profile visitors. The order is therefore:
+
+1. **Whichever you picked** — one click in "Search engine…" stores it in `localStorage` and it sticks
+2. Otherwise a guess from the UI language: Chinese → **Baidu**, anything else → Google
+3. `window.__DSH_CLIPBOARD_MENU_SEARCH__` overrides the URL prefix outright (developer escape hatch)
+
+**The browser itself needs no configuration.** `window.open` goes through the desktop shell's `shell.openExternal`, which hands the URL to your operating system's default browser — whatever you already set.
 
 Cut and Copy grey out when nothing is selected, and a right-click on read-only content with no selection is passed straight through to the app's own menu. Labels follow the interface language (Chinese / English); colours follow the system light or dark theme.
 
@@ -108,7 +114,7 @@ npm install --no-save jsdom
 node test/smoke.cjs
 ```
 
-28 assertions: menu rendering, cut/copy disabled without a selection, textarea caret insertion plus the `input` event, the synthetic paste event reaching a `contenteditable` listener, read-only text without a selection not being intercepted, Copy and Copy-as-plain-text on a read-only selection, Copy not stealing focus, the menu surviving a scroll (while an outside mousedown still closes it), the search entry sitting last and opening the browser with the selection, one icon per entry, the menu staying uninstalled in a browser, and the force flag opting back in.
+34 assertions: menu rendering, cut/copy disabled without a selection, textarea caret insertion plus the `input` event, the synthetic paste event reaching a `contenteditable` listener, read-only text without a selection not being intercepted, Copy and Copy-as-plain-text on a read-only selection, Copy not stealing focus, the menu surviving a scroll (while an outside mousedown still closes it), the search entry opening the browser with the selection, a Chinese UI defaulting to Baidu and an English one to Google, a picked engine being remembered, one icon per entry, the menu staying uninstalled in a browser, and the force flag opting back in.
 
 ## ⚠️ Limitations
 

@@ -57,7 +57,16 @@ function fire(el, type, init) {
 function menuItems(d) {
   const menu = d.querySelector("[data-dsh-clipboard-menu]");
   if (!menu) return null;
-  return Array.from(menu.querySelectorAll("button.dcm-item")).map((b) => ({ label: b.textContent, disabled: b.disabled, el: b }));
+  return Array.from(menu.querySelectorAll("button.dcm-item")).map((b) => {
+    const lb = b.querySelector(".dcm-label");
+    const hn = b.querySelector(".dcm-hint");
+    return {
+      label: lb ? lb.textContent : b.textContent,
+      hint: hn ? hn.textContent : "",
+      disabled: b.disabled,
+      el: b
+    };
+  });
 }
 
 const results = [];
@@ -219,11 +228,13 @@ function check(name, cond, extra) {
     ta.setSelectionRange(0, 5);
     fire(ta, "contextmenu", { clientX: 10, clientY: 10 });
     const items = menuItems(d);
-    check("search: entry sits last", !!items && items[items.length - 1].label === "\u641c\u7d22", items ? items.map((i) => i.label).join("/") : "none");
+    const tags = items ? items.map((i) => i.label) : [];
+    check("search: sits above the engine entry", tags.length === 6 && tags[4] === "\u641c\u7d22" && tags[5] === "\u641c\u7d22\u5f15\u64ce\u2026", tags.join("/"));
+    check("search: hint names the current engine", !!items && items[4].hint === "\u767e\u5ea6", items ? "hint=" + items[4].hint : "");
     if (items) {
-      items[items.length - 1].el.click();
+      items[4].el.click();
       await new Promise((res) => setTimeout(res, 10));
-      check("search: opens the browser with the selection", /q=hello$/.test(getOpened()), "opened=" + JSON.stringify(getOpened()));
+      check("search: chinese UI guesses baidu", /baidu\.com\/s\?wd=hello$/.test(getOpened()), "opened=" + JSON.stringify(getOpened()));
     }
   }
 
@@ -238,8 +249,48 @@ function check(name, cond, extra) {
     const menu = d.querySelector("[data-dsh-clipboard-menu]");
     const icons = menu ? menu.querySelectorAll(".dcm-icon svg") : [];
     const labels = menu ? menu.querySelectorAll(".dcm-label") : [];
-    check("icons: one svg per entry (separator excluded)", icons.length === 5, "icons=" + icons.length);
-    check("icons: label text unaffected", labels.length === 5 && labels[0].textContent === "\u526a\u5207");
+    check("icons: one svg per entry (separator excluded)", icons.length === 6, "icons=" + icons.length);
+    check("icons: label text unaffected", labels.length === 6 && labels[0].textContent === "\u526a\u5207");
+  }
+
+  // ---------- case 10: the engine chooser remembers the pick ----------
+  {
+    const { w, d, mod, getOpened } = boot('<!doctype html><html lang="zh"><body><textarea id="t">hello</textarea></body></html>');
+    mod.apply();
+    const ta = d.getElementById("t");
+    ta.focus();
+    ta.setSelectionRange(0, 5);
+
+    fire(ta, "contextmenu", { clientX: 10, clientY: 10 });
+    menuItems(d)[5].el.click();
+    await new Promise((res) => setTimeout(res, 10));
+    const engines = menuItems(d);
+    check("engine: chooser lists every engine", !!engines && engines.length === 4, engines ? engines.map((i) => i.label).join("/") : "none");
+    check("engine: current one is marked", !!engines && engines[0].el.querySelector(".dcm-hint").textContent === "\u5f53\u524d");
+
+    engines[2].el.click();
+    await new Promise((res) => setTimeout(res, 10));
+    check("engine: pick is persisted", w.localStorage.getItem("dsh-clipboard-menu.engine") === "google");
+
+    ta.focus();
+    ta.setSelectionRange(0, 5);
+    fire(ta, "contextmenu", { clientX: 10, clientY: 10 });
+    menuItems(d)[4].el.click();
+    await new Promise((res) => setTimeout(res, 10));
+    check("engine: remembered pick is used", /google\.com\/search\?q=hello$/.test(getOpened()), "opened=" + JSON.stringify(getOpened()));
+  }
+
+  // ---------- case 11: an english UI guesses google ----------
+  {
+    const { d, mod, getOpened } = boot('<!doctype html><html lang="en"><body><textarea id="t">hello</textarea></body></html>');
+    mod.apply();
+    const ta = d.getElementById("t");
+    ta.focus();
+    ta.setSelectionRange(0, 5);
+    fire(ta, "contextmenu", { clientX: 10, clientY: 10 });
+    menuItems(d)[4].el.click();
+    await new Promise((res) => setTimeout(res, 10));
+    check("engine: english UI guesses google", /google\.com\/search\?q=hello$/.test(getOpened()), "opened=" + JSON.stringify(getOpened()));
   }
 
   console.log(results.join("\n"));
