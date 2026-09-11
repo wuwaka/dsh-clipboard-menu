@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="600" height="330" viewBox="0 0 600 330" role="img" aria-label="composer with the right-click menu open">
+  <rect width="600" height="330" rx="16" fill="#0f141c"/>
+  <text x="28" y="36" font-family="Segoe UI,-apple-system,system-ui,sans-serif" font-size="13" fill="#6c7a95">DSH Desktop · 右键输入框</text>
+
+  <!-- context menu -->
+  <rect x="112" y="60" width="200" height="164" rx="10" fill="#1b2230" stroke="#39435a"/>
+  <rect x="122" y="136" width="180" height="32" rx="7" fill="#4d6bfe"/>
+  <g font-family="Segoe UI,-apple-system,system-ui,sans-serif" font-size="14.5">
+    <text x="138" y="112" fill="#e6ecf8">剪切</text>
+    <text x="138" y="146" fill="#b9c6e2">复制</text>
+    <text x="138" y="158" fill="#ffffff">粘贴</text>
+    <line x1="132" y1="180" x2="292" y2="180" stroke="#39435a"/>
+    <text x="138" y="206" fill="#e6ecf8">全选</text>
+  </g>
+
+  <!-- composer -->
+  <rect x="24" y="226" width="552" height="80" rx="14" fill="#161c27" stroke="#2a3346"/>
+  <text x="48" y="260" font-family="Segoe UI,-apple-system,system-ui,sans-serif" font-size="15" fill="#c9d4ea">帮我看看</text>
+  <rect x="118" y="247" width="2" height="20" fill="#4d6bfe"/>
+  <text x="48" y="288" font-family="Segoe UI,-apple-system,system-ui,sans-serif" font-size="11.5" fill="#5f6d88">Lexical 编辑器（contenteditable）</text>
+  <text x="470" y="288" font-family="Segoe UI,-apple-system,system-ui,sans-serif" font-size="11.5" fill="#5f6d88">Ctrl+Enter 发送</text>
+</svg>

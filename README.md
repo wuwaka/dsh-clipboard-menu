@@ -1,93 +1,103 @@
-# dsh-clipboard-menu
 
-Adds a right-click **Cut / Copy / Paste / Select All** menu to DeepSeek Harness
-composer inputs **inside desktop shells**, which ship no context menu of their
-own.
+<div align="center">
 
-## Why
+<img src="assets/logo.svg" width="440" alt="dsh-clipboard-menu">
 
-Electron ships no default context menu, and DSH Desktop's shell does not add
-one, so right-clicking the composer does nothing. This plugin supplies the menu
-in the renderer.
+**给 DeepSeek Harness 的输入框补上缺失的右键菜单**
 
-The desktop main process is a packaged bundle (`lib/main.js` +
-`electron-runtime`), so a DSH plugin cannot hook `webContents` and pop a native
-`Menu`. Hence the browser half.
+[简体中文](README.md) | [English](README.en.md)
 
-## Scope
+[![license](https://img.shields.io/badge/license-MIT-yellow.svg?style=flat-square)](LICENSE)
+[![stars](https://img.shields.io/github/stars/wuwaka/dsh-clipboard-menu?style=flat-square)](https://github.com/wuwaka/dsh-clipboard-menu/stargazers)
+[![topic](https://img.shields.io/badge/topic-dsh--plugin-4d6bfe?style=flat-square)](https://github.com/topics/dsh-plugin)
+[![tested](https://img.shields.io/badge/tested%20on-DSH%200.1.5--rc.1-4d6bfe?style=flat-square)](#)
 
-The menu is installed **only where the platform has no context menu of its own**.
-A normal browser tab already has a native menu that does more (paste and match
-style, search, inspect), so this plugin deliberately does not install its
-listener there — right-click keeps behaving exactly as the browser intends.
+<img src="assets/menu.svg" width="600" alt="右键输入框时弹出的菜单">
 
-Detection uses the markers DSH Desktop stamps onto the renderer URL
-(`dsh-desktop-mode` and friends) and its preload bridge, plus the runtime signals
-of other embedded shells (Electron, Tauri). To use the menu in a browser on
-purpose, set `window.__DSH_CLIPBOARD_MENU_FORCE__ = true` before the plugin
-loads.
+</div>
 
-## Install
+## 这是什么
+
+在 DeepSeek Harness 的**输入框上右键**，弹出一个顺手的菜单：
+
+| 菜单项 | 说明 |
+| --- | --- |
+| ✂️ 剪切 | 剪切选中的文字 |
+| 📋 复制 | 复制选中的文字 |
+| 📥 粘贴 | 把系统剪贴板的内容粘到光标处 |
+| 🗂️ 全选 | 选中输入框全部内容 |
+
+没选中文字时，剪切与复制自动置灰。菜单文字跟随界面语言（中文 / English），配色跟随系统明暗主题。
+
+## 为什么需要它
+
+**Electron 本身不提供右键菜单**，而 DSH Desktop 的外壳也没有补上，所以桌面窗口里右键输入框**什么都不弹**——只能用 `Ctrl+C` / `Ctrl+V`。
+
+桌面主进程是打包好的 bundle（`lib/main.js` + `electron-runtime`），插件无法注入去挂 `webContents` 事件，所以这个插件把菜单做在**渲染进程**里。
+
+## 🚀 安装
 
 ```sh
 dsh plugin --profile <profile> add github:wuwaka/dsh-clipboard-menu
 ```
 
-Or from a local checkout:
+本地开发：
 
 ```sh
 dsh plugin --profile <profile> add /path/to/dsh-clipboard-menu
 ```
 
-Restart the host (or the desktop app wrapping it) to load the new bundle.
+装完重启宿主（或承载它的桌面端）即可生效。
 
-## What it does
+## 🔒 生效范围
 
-| Target | Paste path |
-|---|---|
-| `contenteditable` (the DSH composer is a Lexical editor) | dispatches a synthetic `ClipboardEvent('paste')` carrying a `DataTransfer`, which Lexical's own paste listener consumes; falls back to `execCommand('insertText')` |
-| `<input>` / `<textarea>` (React-controlled) | writes through the native `value` setter and dispatches an `input` event |
-| xterm | dispatches the same synthetic `paste` event |
+**只在没有自带右键菜单的外壳里生效。**
 
-Cut and copy use `document.execCommand('cut' | 'copy')` after restoring the
-selection captured at right-click time (a `Range` for contenteditable, or
-`selectionStart/End` for inputs). If copy fails it falls back to
-`navigator.clipboard.writeText`.
+普通浏览器标签页本来就有原生菜单，而且比这个更好用（粘贴并匹配样式、搜索、检查元素……），**所以插件在浏览器里完全不安装监听器，右键行为保持原样**，不做降级。
 
-The menu only intercepts right-clicks inside editable fields. Context menus the
-app or other plugins provide (JSON copy buttons, sidebar previews) are left
-untouched. Labels follow the document language (Chinese or English). Colours use
-the system `Canvas` / `CanvasText` / `Highlight` palette so the menu matches
-the active light or dark theme.
+判定依据：
 
-## Layout
+| 信号 | 来源 |
+| --- | --- |
+| `dsh-desktop-mode` 等 URL 参数 | DSH Desktop 往渲染进程 URL 上打的标记 |
+| `window.__DSH_DESKTOP_FILE_PATH__` | DSH Desktop 的 preload 桥 |
+| User-Agent 含 `Electron/` | 其他 Electron 外壳 |
+| `__TAURI__` / `__TAURI_INTERNALS__` | Tauri 外壳 |
 
-```
-package.json          dsh.bundle.patch + dsh.client manifest
-cordis.patch.yml      inserts the host row
-lib/index.js          host half (no-op)
-lib/client.js         renderer half: listener + menu
-test/smoke.cjs        jsdom smoke test
+以上都不满足（即普通浏览器）→ 不生效。想刻意在浏览器里用，可在插件加载前设置：
+
+```js
+window.__DSH_CLIPBOARD_MENU_FORCE__ = true
 ```
 
-## Test
+## ⚙️ 实现方式
+
+DSH 的输入框是 **Lexical 富文本编辑器**（`contenteditable`），不能简单地给 `value` 赋值，因此粘贴按目标类型分三条路径：
+
+| 目标 | 粘贴实现 |
+| --- | --- |
+| `contenteditable`（Lexical 编辑器） | 合成一个真实的 `ClipboardEvent('paste')` 带上 `DataTransfer`，交给 Lexical 自己的 paste 监听处理；失败再退回 `execCommand('insertText')` |
+| `<input>` / `<textarea>`（React 受控） | 走原生 `value` setter 写值 + 派发 `input` 事件（React 才认） |
+| xterm 终端 | 同样派发合成 `paste` 事件 |
+
+剪切 / 复制使用 `document.execCommand('cut' | 'copy')`，执行前先**恢复右键那一刻保存的选区**（contenteditable 用 `Range`，输入框用 `selectionStart/End`）；复制失败时退回 `navigator.clipboard.writeText`。
+
+插件只拦截**可编辑字段**上的右键；应用与其他插件自己的右键菜单（JSON 复制按钮、侧边栏预览等）一律不受影响。
+
+## 🧪 测试
 
 ```sh
 npm install --no-save jsdom
 node test/smoke.cjs
 ```
 
-Covers menu rendering, disabled state without a selection, textarea caret
-insertion plus the `input` event, the synthetic paste event reaching a
-`contenteditable` listener, non-editable targets not being intercepted, the menu
-staying uninstalled in a plain browser tab, and the force flag opting back in.
+覆盖 18 项断言：菜单渲染、无选区时剪贴置灰、textarea 粘贴落点与 `input` 事件、合成 paste 事件抵达 `contenteditable` 监听、非可编辑目标不被拦截、浏览器里不安装监听器、强制开关可反向启用。
 
-## Limitations
+## ⚠️ 已知限制
 
-- If `navigator.clipboard.readText()` is denied, the menu reports that the
-  clipboard is unavailable and suggests Ctrl+V.
-- No "paste and match style" entry.
+- 若 `navigator.clipboard.readText()` 被拒绝，菜单会提示剪贴板不可用并建议用 `Ctrl+V`
+- 没有做「粘贴并匹配样式」
 
-## License
+## 📄 许可证
 
-MIT
+[MIT](LICENSE)
