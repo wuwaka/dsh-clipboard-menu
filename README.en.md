@@ -1,7 +1,7 @@
 
 <div align="center">
 
-<img src="assets/poster.jpg" width="560" alt="dsh-clipboard-menu — a right-click clipboard menu for DeepSeek Harness">
+<img src="assets/poster.jpg" width="620" alt="dsh-clipboard-menu — a right-click clipboard menu for DeepSeek Harness">
 
 **The right-click menu the DeepSeek Harness composer was missing**
 

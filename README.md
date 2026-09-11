@@ -1,7 +1,7 @@
 
 <div align="center">
 
-<img src="assets/poster.jpg" width="560" alt="dsh-clipboard-menu — DeepSeek Harness 右键剪贴板菜单插件">
+<img src="assets/poster.jpg" width="620" alt="dsh-clipboard-menu — DeepSeek Harness 右键剪贴板菜单插件">
 
 **给 DeepSeek Harness 的输入框补上缺失的右键菜单**
 
