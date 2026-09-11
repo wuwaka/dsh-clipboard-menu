@@ -20,6 +20,8 @@ function boot(html, opts) {
 
   // --- shims jsdom lacks ---
   let clip = "";
+  let opened = "";
+  w.open = (u) => { opened = u; return null; };
   Object.defineProperty(w.navigator, "clipboard", {
     configurable: true,
     value: { readText: async () => clip, writeText: async (t) => { clip = t; } }
@@ -43,7 +45,7 @@ function boot(html, opts) {
   let mod;
   w.__ModuleLoader__ = { load: (def) => { mod = def.factory(() => { throw new Error("no require"); }); } };
   w.eval(code);
-  return { w, d, mod, setClip: (t) => { clip = t; }, getClip: () => clip };
+  return { w, d, mod, setClip: (t) => { clip = t; }, getClip: () => clip, getOpened: () => opened };
 }
 
 function fire(el, type, init) {
@@ -206,6 +208,38 @@ function check(name, cond, extra) {
     d.dispatchEvent(new w.MouseEvent("mousedown", { bubbles: true }));
     await new Promise((res) => setTimeout(res, 10));
     check("scroll: menu still closes on an outside mousedown", !menuItems(d));
+  }
+
+  // ---------- case 8: the search entry ----------
+  {
+    const { d, mod, getOpened } = boot('<!doctype html><html lang="zh"><body><textarea id="t">hello</textarea></body></html>');
+    mod.apply();
+    const ta = d.getElementById("t");
+    ta.focus();
+    ta.setSelectionRange(0, 5);
+    fire(ta, "contextmenu", { clientX: 10, clientY: 10 });
+    const items = menuItems(d);
+    check("search: entry sits last", !!items && items[items.length - 1].label === "\u641c\u7d22", items ? items.map((i) => i.label).join("/") : "none");
+    if (items) {
+      items[items.length - 1].el.click();
+      await new Promise((res) => setTimeout(res, 10));
+      check("search: opens the browser with the selection", /q=hello$/.test(getOpened()), "opened=" + JSON.stringify(getOpened()));
+    }
+  }
+
+  // ---------- case 9: every entry carries an icon ----------
+  {
+    const { d, mod } = boot('<!doctype html><html lang="zh"><body><textarea id="t">abc</textarea></body></html>');
+    mod.apply();
+    const ta = d.getElementById("t");
+    ta.focus();
+    ta.setSelectionRange(0, 3);
+    fire(ta, "contextmenu", { clientX: 10, clientY: 10 });
+    const menu = d.querySelector("[data-dsh-clipboard-menu]");
+    const icons = menu ? menu.querySelectorAll(".dcm-icon svg") : [];
+    const labels = menu ? menu.querySelectorAll(".dcm-label") : [];
+    check("icons: one svg per entry (separator excluded)", icons.length === 5, "icons=" + icons.length);
+    check("icons: label text unaffected", labels.length === 5 && labels[0].textContent === "\u526a\u5207");
   }
 
   console.log(results.join("\n"));

@@ -28,13 +28,21 @@ Right-click the DeepSeek Harness composer and get a menu:
 | 📋 Copy | Copy the selected text |
 | 📥 Paste | Insert the system clipboard at the caret |
 | 🗂️ Select All | Select the whole field |
+| 🌐 Search | Search the selected text in your default browser (greyed out without a selection) |
 
-Select text in a **read-only** surface — an AI reply, a document preview, a code block — and right-click for the two copy entries:
+Select text in a **read-only** surface — an AI reply, a document preview, a code block — and right-click for three entries:
 
 | Item | Action |
 | --- | --- |
 | 📋 Copy | Copy with formatting (paste into Word and the styling comes along) |
 | 📝 Copy as plain text | Copy the characters only, which pastes cleanly into a terminal or editor |
+| 🌐 Search | Search the selected text in your default browser |
+
+Search goes to Bing by default, which is reachable from most networks. To use another engine, override this before the plugin loads:
+
+§§§js
+window.__DSH_CLIPBOARD_MENU_SEARCH__ = "https://duckduckgo.com/?q="
+§§§
 
 Cut and Copy grey out when nothing is selected, and a right-click on read-only content with no selection is passed straight through to the app's own menu. Labels follow the interface language (Chinese / English); colours follow the system light or dark theme.
 
@@ -100,7 +108,7 @@ npm install --no-save jsdom
 node test/smoke.cjs
 ```
 
-24 assertions: menu rendering, cut/copy disabled without a selection, textarea caret insertion plus the `input` event, the synthetic paste event reaching a `contenteditable` listener, read-only text without a selection not being intercepted, Copy and Copy-as-plain-text on a read-only selection, Copy not stealing focus, the menu surviving a scroll (while an outside mousedown still closes it), the menu staying uninstalled in a browser, and the force flag opting back in.
+28 assertions: menu rendering, cut/copy disabled without a selection, textarea caret insertion plus the `input` event, the synthetic paste event reaching a `contenteditable` listener, read-only text without a selection not being intercepted, Copy and Copy-as-plain-text on a read-only selection, Copy not stealing focus, the menu surviving a scroll (while an outside mousedown still closes it), the search entry sitting last and opening the browser with the selection, one icon per entry, the menu staying uninstalled in a browser, and the force flag opting back in.
 
 ## ⚠️ Limitations
 
