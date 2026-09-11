@@ -13,8 +13,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        # jsdom (the test-only dependency) needs node 22+, and DSH itself
+        # requires ^22.19 || >=24, so node 20 is not a supported target.
         os: [ubuntu-latest, windows-latest]
-        node: [20, 22]
+        node: [22, 24]
     steps:
       - uses: actions/checkout@v4
 
