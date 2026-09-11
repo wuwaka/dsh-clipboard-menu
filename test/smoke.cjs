@@ -130,14 +130,15 @@ function check(name, cond, extra) {
     }
   }
 
-  // ---------- case 4: non-editable, no selection -> must NOT intercept ----------
+  // ---------- case 4: read-only text (an AI reply) ----------
   {
-    const { w, d, mod } = boot('<!doctype html><html lang="zh"><body><p id="p">plain</p></body></html>');
+    const { w, d, mod, setClip, getClip } = boot('<!doctype html><html lang="zh"><body><p id="p">plain</p></body></html>');
     mod.apply();
     const p = d.getElementById("p");
+
     const ev = fire(p, "contextmenu", { clientX: 5, clientY: 5 });
-    check("no menu on plain text without selection", !menuItems(d));
-    check("did not preventDefault", ev.defaultPrevented === false);
+    check("read-only: no menu without a selection", !menuItems(d));
+    check("read-only: unrelated right-click not intercepted", ev.defaultPrevented === false);
 
     const r = d.createRange();
     r.selectNodeContents(p);
@@ -145,7 +146,14 @@ function check(name, cond, extra) {
     sel.removeAllRanges();
     sel.addRange(r);
     const ev2 = fire(p, "contextmenu", { clientX: 6, clientY: 6 });
-    check("non-editable selection is NOT intercepted", !menuItems(d) && ev2.defaultPrevented === false);
+    const items2 = menuItems(d);
+    check("read-only: selection opens a copy menu", !!items2 && ev2.defaultPrevented === true, items2 ? items2.map((i) => i.label).join("/") : "none");
+    if (items2) {
+      setClip("");
+      items2.find((i) => i.label === "\u590d\u5236\u4e3a\u7eaf\u6587\u672c").el.click();
+      await new Promise((res) => setTimeout(res, 30));
+      check("read-only: copy as plain text wrote the selection", getClip() === "plain", "clip=" + JSON.stringify(getClip()));
+    }
   }
 
   // ---------- case 5: plain browser -> must stay out of the way entirely ----------

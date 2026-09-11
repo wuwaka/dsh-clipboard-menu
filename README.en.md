@@ -27,7 +27,14 @@ Right-click the DeepSeek Harness composer and get a menu:
 | 📥 Paste | Insert the system clipboard at the caret |
 | 🗂️ Select All | Select the whole field |
 
-Cut and Copy grey out when nothing is selected. Labels follow the interface language (Chinese / English); colours follow the system light or dark theme.
+Select text in a **read-only** surface — an AI reply, a document preview, a code block — and right-click for the two copy entries:
+
+| Item | Action |
+| --- | --- |
+| 📋 Copy | Copy with formatting (paste into Word and the styling comes along) |
+| 📝 Copy as plain text | Copy the characters only, which pastes cleanly into a terminal or editor |
+
+Cut and Copy grey out when nothing is selected, and a right-click on read-only content with no selection is passed straight through to the app's own menu. Labels follow the interface language (Chinese / English); colours follow the system light or dark theme.
 
 ## Why it exists
 
@@ -82,7 +89,7 @@ The DSH composer is a **Lexical editor** (a `contenteditable` root), so pasting 
 
 Cut and copy use `document.execCommand('cut' | 'copy')` after restoring the selection captured at right-click time (a `Range` for contenteditable, `selectionStart/End` for inputs). If copy fails it falls back to `navigator.clipboard.writeText`.
 
-Only right-clicks inside editable fields are intercepted; context menus the app or other plugins provide (JSON copy buttons, sidebar previews) are left untouched.
+Exactly two cases are intercepted: editable fields (the full menu) and read-only content with a selection (the two copy entries). Everything else is passed through, so context menus the app or other plugins provide (JSON copy buttons, sidebar previews) keep working.
 
 ## 🧪 Test
 
@@ -91,7 +98,7 @@ npm install --no-save jsdom
 node test/smoke.cjs
 ```
 
-18 assertions: menu rendering, cut/copy disabled without a selection, textarea caret insertion plus the `input` event, the synthetic paste event reaching a `contenteditable` listener, non-editable targets not being intercepted, the menu staying uninstalled in a browser, and the force flag opting back in.
+19 assertions: menu rendering, cut/copy disabled without a selection, textarea caret insertion plus the `input` event, the synthetic paste event reaching a `contenteditable` listener, read-only text without a selection not being intercepted, copy-as-plain-text on a read-only selection, the menu staying uninstalled in a browser, and the force flag opting back in.
 
 ## ⚠️ Limitations
 
