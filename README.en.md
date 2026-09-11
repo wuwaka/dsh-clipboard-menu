@@ -98,7 +98,7 @@ npm install --no-save jsdom
 node test/smoke.cjs
 ```
 
-19 assertions: menu rendering, cut/copy disabled without a selection, textarea caret insertion plus the `input` event, the synthetic paste event reaching a `contenteditable` listener, read-only text without a selection not being intercepted, copy-as-plain-text on a read-only selection, the menu staying uninstalled in a browser, and the force flag opting back in.
+21 assertions: menu rendering, cut/copy disabled without a selection, textarea caret insertion plus the `input` event, the synthetic paste event reaching a `contenteditable` listener, read-only text without a selection not being intercepted, Copy and Copy-as-plain-text on a read-only selection, Copy not stealing focus, the menu staying uninstalled in a browser, and the force flag opting back in.
 
 ## ⚠️ Limitations
 

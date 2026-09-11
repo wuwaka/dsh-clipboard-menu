@@ -153,6 +153,13 @@ function check(name, cond, extra) {
       items2.find((i) => i.label === "\u590d\u5236\u4e3a\u7eaf\u6587\u672c").el.click();
       await new Promise((res) => setTimeout(res, 30));
       check("read-only: copy as plain text wrote the selection", getClip() === "plain", "clip=" + JSON.stringify(getClip()));
+
+      setClip("");
+      const keepFocus = d.activeElement;
+      items2.find((i) => i.label === "\u590d\u5236").el.click();
+      await new Promise((res) => setTimeout(res, 30));
+      check("read-only: plain Copy wrote the selection too", getClip() === "plain", "clip=" + JSON.stringify(getClip()));
+      check("read-only: Copy did not steal focus", d.activeElement === keepFocus);
     }
   }
 

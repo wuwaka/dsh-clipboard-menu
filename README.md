@@ -98,7 +98,7 @@ npm install --no-save jsdom
 node test/smoke.cjs
 ```
 
-覆盖 19 项断言：菜单渲染、无选区时剪贴置灰、textarea 粘贴落点与 `input` 事件、合成 paste 事件抵达 `contenteditable` 监听、只读区域无选区时不拦截、只读选区的复制为纯文本、浏览器里不安装监听器、强制开关可反向启用。
+覆盖 21 项断言：菜单渲染、无选区时剪贴置灰、textarea 粘贴落点与 `input` 事件、合成 paste 事件抵达 `contenteditable` 监听、只读区域无选区时不拦截、只读选区的复制与复制为纯文本、复制不夺焦点、浏览器里不安装监听器、强制开关可反向启用。
 
 ## ⚠️ 已知限制
 
