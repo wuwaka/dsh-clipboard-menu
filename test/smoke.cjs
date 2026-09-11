@@ -187,6 +187,27 @@ function check(name, cond, extra) {
     check("force flag installs the menu in a browser", !!menuItems(d));
   }
 
+  // ---------- case 7: the menu must survive content scrolling ----------
+  {
+    const { w, d, mod } = boot('<!doctype html><html lang="zh"><body><div id="scroller"><textarea id="t">abc</textarea></div></body></html>');
+    mod.apply();
+    const ta = d.getElementById("t");
+    ta.focus();
+    ta.setSelectionRange(1, 1);
+    fire(ta, "contextmenu", { clientX: 30, clientY: 30 });
+    check("scroll: menu open to begin with", !!menuItems(d));
+
+    await new Promise((res) => setTimeout(res, 10));
+    d.getElementById("scroller").dispatchEvent(new w.Event("scroll", { bubbles: true }));
+    d.dispatchEvent(new w.Event("scroll", { bubbles: true }));
+    await new Promise((res) => setTimeout(res, 10));
+    check("scroll: menu survives a scroll", !!menuItems(d));
+
+    d.dispatchEvent(new w.MouseEvent("mousedown", { bubbles: true }));
+    await new Promise((res) => setTimeout(res, 10));
+    check("scroll: menu still closes on an outside mousedown", !menuItems(d));
+  }
+
   console.log(results.join("\n"));
   const failed = results.filter((r) => r.startsWith("FAIL")).length;
   console.log("\n" + (results.length - failed) + "/" + results.length + " passed");
