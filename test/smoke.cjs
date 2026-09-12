@@ -370,9 +370,10 @@ function check(name, cond, extra) {
     check("custom: Save is the only button (paste lives in the right-click menu)", form.querySelectorAll(".dcm-btn").length === 1, "buttons=" + form.querySelectorAll(".dcm-btn").length);
     save.click();
     await new Promise((res) => setTimeout(res, 10));
-    check("custom: the template is stored", w.localStorage.getItem("dsh-clipboard-menu.custom") === "https://search.example.org/find?q={query}");
-    check("custom: the name is stored", w.localStorage.getItem("dsh-clipboard-menu.customName") === "My Search");
-    check("custom: it becomes the chosen engine", w.localStorage.getItem("dsh-clipboard-menu.engine") === "custom");
+    const customs = () => JSON.parse(w.localStorage.getItem("dsh-clipboard-menu.customs") || "[]");
+    check("custom: the template is stored", customs().length === 1 && customs()[0].url === "https://search.example.org/find?q={query}", JSON.stringify(customs()));
+    check("custom: the name is stored", customs()[0] && customs()[0].name === "My Search");
+    check("custom: it becomes the chosen engine", String(w.localStorage.getItem("dsh-clipboard-menu.engine")).indexOf("custom:") === 0);
     check("custom: the form closes and the menu returns", !formInput() && !!menuItems(d));
 
     menuItems(d)[5].el.dispatchEvent(new w.MouseEvent("mouseenter"));
@@ -398,9 +399,8 @@ function check(name, cond, extra) {
     check("custom: the affordance is labelled", !!action && action.getAttribute("aria-label") === "\u5220\u9664", action ? action.getAttribute("aria-label") : "none");
     action.click();
     await new Promise((res) => setTimeout(res, 10));
-    check("custom: deleting clears the template", !w.localStorage.getItem("dsh-clipboard-menu.custom"));
-    check("custom: deleting clears the name", !w.localStorage.getItem("dsh-clipboard-menu.customName"));
-    check("custom: the engine stops being custom", w.localStorage.getItem("dsh-clipboard-menu.engine") !== "custom");
+    check("custom: deleting clears the list", customs().length === 0, JSON.stringify(customs()));
+    check("custom: the engine stops being custom", String(w.localStorage.getItem("dsh-clipboard-menu.engine")).indexOf("custom:") !== 0);
 
     menuItems(d)[5].el.dispatchEvent(new w.MouseEvent("mouseenter"));
     const after = submenuItems(d);
@@ -444,6 +444,55 @@ function check(name, cond, extra) {
     mousedown(d.body);
     await new Promise((res) => setTimeout(res, 10));
     check("dismiss: an outside click closes every layer", !fieldMenuItems(d) && !submenuItems(d) && !menuItems(d));
+  }
+
+  // ---------- case 10d: several custom providers coexist ----------
+  {
+    const { w, d, mod, getOpened } = boot('<!doctype html><html lang="zh"><body><textarea id="t">hello</textarea></body></html>');
+    mod.apply();
+    const ta = d.getElementById("t");
+    ta.focus();
+    ta.setSelectionRange(0, 5);
+    const customs = () => JSON.parse(w.localStorage.getItem("dsh-clipboard-menu.customs") || "[]");
+    const openList = () => {
+      fire(ta, "contextmenu", { clientX: 10, clientY: 10 });
+      menuItems(d)[5].el.dispatchEvent(new w.MouseEvent("mouseenter"));
+      return submenuItems(d);
+    };
+    const addProvider = async (name, url) => {
+      const rows = openList();
+      rows[rows.length - 1].el.click();                 // the "custom…" row
+      const inputs = d.querySelectorAll("[data-dsh-clipboard-menu].dcm-submenu .dcm-input");
+      inputs[0].value = name;
+      inputs[1].value = url;
+      d.querySelector("[data-dsh-clipboard-menu].dcm-submenu .dcm-btn-primary").click();
+      await new Promise((res) => setTimeout(res, 10));
+    };
+
+    await addProvider("Alpha", "https://alpha.example/s?q={query}");
+    await addProvider("Beta", "https://beta.example/find?q={query}");
+    check("multi: both providers are stored", customs().length === 2, JSON.stringify(customs()));
+
+    let rows = openList();
+    check("multi: both are listed by name", rows.some((i) => i.label === "Alpha") && rows.some((i) => i.label === "Beta"), rows.map((i) => i.label).join("/"));
+
+    rows.find((i) => i.label === "Alpha").el.click();
+    await new Promise((res) => setTimeout(res, 10));
+    check("multi: Alpha becomes the current engine", String(w.localStorage.getItem("dsh-clipboard-menu.engine")).indexOf("custom:") === 0);
+
+    rows = openList();
+    rows.find((i) => i.label === "Beta").el.closest(".dcm-row").querySelector(".dcm-action").click();
+    await new Promise((res) => setTimeout(res, 10));
+    check("multi: only Beta was removed", customs().length === 1 && customs()[0].name === "Alpha", JSON.stringify(customs()));
+
+    rows = openList();
+    check("multi: Alpha survives", rows.some((i) => i.label === "Alpha") && !rows.some((i) => i.label === "Beta"), rows.map((i) => i.label).join("/"));
+
+    const back = menuItems(d);
+    check("multi: the hint names the surviving provider", !!back && back[4].hint === "Alpha", back ? "hint=" + back[4].hint : "none");
+    back[4].el.click();
+    await new Promise((res) => setTimeout(res, 10));
+    check("multi: it searches through Alpha's template", getOpened() === "https://alpha.example/s?q=hello", "opened=" + JSON.stringify(getOpened()));
   }
 
   // ---------- case 11: an english UI guesses google ----------

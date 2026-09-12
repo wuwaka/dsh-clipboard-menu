@@ -48,7 +48,7 @@ Select text in a **read-only** surface — an AI reply, a document preview, a co
 2. Otherwise a guess from the UI language: Chinese → **Baidu**, anything else → Google
 3. `window.__DSH_CLIPBOARD_MENU_SEARCH__` overrides outright (developer escape hatch)
 
-The list's "**Custom**" entry opens a small form:
+The list's "**Custom**" entry opens a small form, and you can keep **as many providers as you like**:
 
 | Field | Meaning |
 | --- | --- |
@@ -59,9 +59,9 @@ The list's "**Custom**" entry opens a small form:
 https://search.example.org/find?q={query}
 §§§
 
-**Enter** or **Save** applies it. Right-clicking either field offers the same cut/copy/paste/select-all menu on its own layer, so pasting a URL never tears the form down — which is why there is no separate Paste button. **Escape** backs out one level rather than closing the whole menu.
+**Enter** or **Save** adds a provider. Right-clicking either field offers the same cut/copy/paste/select-all menu on its own layer, so pasting a URL never tears the form down — which is why there is no separate Paste button. **Escape** backs out one level rather than closing the whole menu.
 
-A saved custom entry appears in the list under the name you gave it. **Hover it and a trash icon slides in at the far right; one click removes that provider** (the engine falls back to the language guess). The icon only appears when there is something to remove.
+Saved providers are listed under the name you gave them; click one to switch. **Hover a row and a trash icon slides in at the far right; one click removes that provider** (if it was the current engine, the engine falls back to the language guess). Any number of custom providers can coexist and be removed independently.
 
 **The browser itself needs no configuration.** `window.open` goes through the desktop shell's `shell.openExternal`, which hands the URL to your operating system's default browser — whatever you already set.
 
@@ -129,7 +129,7 @@ npm install --no-save jsdom
 node test/smoke.cjs
 ```
 
-77 assertions: menu rendering, cut/copy disabled without a selection, textarea caret insertion plus the `input` event, the synthetic paste event reaching a `contenteditable` listener, read-only text without a selection not being intercepted, Copy and Copy-as-plain-text on a read-only selection, Copy not stealing focus, the menu surviving a scroll (while an outside mousedown still closes it), the search entry opening the browser with the selection, a Chinese UI defaulting to Baidu and an English one to Google, the hover submenu opening without closing the main menu, a named custom engine appearing in the list, right-clicking a form field opening a clipboard menu without closing the form, pasting into that field, a picked engine being remembered, a custom template's {query} being substituted, one icon per entry, the menu staying uninstalled in a browser, and the force flag opting back in.
+83 assertions: menu rendering, cut/copy disabled without a selection, textarea caret insertion plus the `input` event, the synthetic paste event reaching a `contenteditable` listener, read-only text without a selection not being intercepted, Copy and Copy-as-plain-text on a read-only selection, Copy not stealing focus, the menu surviving a scroll (while an outside mousedown still closes it), the search entry opening the browser with the selection, a Chinese UI defaulting to Baidu and an English one to Google, the hover submenu opening without closing the main menu, a named custom engine appearing in the list, right-clicking a form field opening a clipboard menu without closing the form, pasting into that field, a picked engine being remembered, a custom template's {query} being substituted, one icon per entry, the menu staying uninstalled in a browser, and the force flag opting back in.
 
 ## ⚠️ Limitations
 
