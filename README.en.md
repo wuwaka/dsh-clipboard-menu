@@ -59,7 +59,7 @@ The list's "**Custom**" entry opens a small form:
 https://search.example.org/find?q={query}
 §§§
 
-**Enter** or **Save** applies it. Right-clicking either field offers the same cut/copy/paste/select-all menu on its own layer, so pasting a URL never tears the form down; a **Paste** button sits beside Save as well. **Escape** backs out one level rather than closing the whole menu.
+**Enter** or **Save** applies it. Right-clicking either field offers the same cut/copy/paste/select-all menu on its own layer, so pasting a URL never tears the form down — which is why there is no separate Paste button. **Escape** backs out one level rather than closing the whole menu.
 
 **The browser itself needs no configuration.** `window.open` goes through the desktop shell's `shell.openExternal`, which hands the URL to your operating system's default browser — whatever you already set.
 
@@ -127,7 +127,7 @@ npm install --no-save jsdom
 node test/smoke.cjs
 ```
 
-68 assertions: menu rendering, cut/copy disabled without a selection, textarea caret insertion plus the `input` event, the synthetic paste event reaching a `contenteditable` listener, read-only text without a selection not being intercepted, Copy and Copy-as-plain-text on a read-only selection, Copy not stealing focus, the menu surviving a scroll (while an outside mousedown still closes it), the search entry opening the browser with the selection, a Chinese UI defaulting to Baidu and an English one to Google, the hover submenu opening without closing the main menu, a named custom engine appearing in the list, right-clicking a form field opening a clipboard menu without closing the form, pasting into that field, a picked engine being remembered, a custom template's {query} being substituted, one icon per entry, the menu staying uninstalled in a browser, and the force flag opting back in.
+69 assertions: menu rendering, cut/copy disabled without a selection, textarea caret insertion plus the `input` event, the synthetic paste event reaching a `contenteditable` listener, read-only text without a selection not being intercepted, Copy and Copy-as-plain-text on a read-only selection, Copy not stealing focus, the menu surviving a scroll (while an outside mousedown still closes it), the search entry opening the browser with the selection, a Chinese UI defaulting to Baidu and an English one to Google, the hover submenu opening without closing the main menu, a named custom engine appearing in the list, right-clicking a form field opening a clipboard menu without closing the form, pasting into that field, a picked engine being remembered, a custom template's {query} being substituted, one icon per entry, the menu staying uninstalled in a browser, and the force flag opting back in.
 
 ## ⚠️ Limitations
 

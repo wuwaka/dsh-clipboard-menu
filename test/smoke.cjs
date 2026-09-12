@@ -366,6 +366,7 @@ function check(name, cond, extra) {
 
     const save = form.querySelector(".dcm-btn-primary");
     check("custom: there is a save button", !!save);
+    check("custom: Save is the only button (paste lives in the right-click menu)", form.querySelectorAll(".dcm-btn").length === 1, "buttons=" + form.querySelectorAll(".dcm-btn").length);
     save.click();
     await new Promise((res) => setTimeout(res, 10));
     check("custom: the template is stored", w.localStorage.getItem("dsh-clipboard-menu.custom") === "https://search.example.org/find?q={query}");
