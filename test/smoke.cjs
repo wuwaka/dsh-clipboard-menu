@@ -298,7 +298,7 @@ function check(name, cond, extra) {
     check("engine: remembered pick is used", /google\.com\/search\?q=hello$/.test(getOpened()), "opened=" + JSON.stringify(getOpened()));
   }
 
-  // ---------- case 10b: a custom search URL ----------
+  // ---------- case 10b: a named custom search URL ----------
   {
     const { w, d, mod, getOpened } = boot('<!doctype html><html lang="zh"><body><textarea id="t">hello</textarea></body></html>');
     mod.apply();
@@ -306,21 +306,41 @@ function check(name, cond, extra) {
     ta.focus();
     ta.setSelectionRange(0, 5);
 
-    fire(ta, "contextmenu", { clientX: 10, clientY: 10 });
-    menuItems(d)[5].el.dispatchEvent(new w.MouseEvent("mouseenter"));
-    submenuItems(d)[4].el.click();                       // the custom entry
-    const field = d.querySelector("[data-dsh-clipboard-menu].dcm-submenu .dcm-input");
-    check("custom: picking it reveals a URL field", !!field);
+    const formInput = () => d.querySelector("[data-dsh-clipboard-menu].dcm-submenu .dcm-input");
 
-    field.value = "https://search.example.org/find?q={query}";
-    field.dispatchEvent(new w.KeyboardEvent("keydown", { key: "Enter", bubbles: true, cancelable: true }));
+    fire(ta, "contextmenu", { clientX: 10, clientY: 10 });
+    const row = menuItems(d)[5];
+    row.el.dispatchEvent(new w.MouseEvent("mouseenter"));
+    submenuItems(d)[4].el.click();                       // the custom entry
+
+    const form = d.querySelector("[data-dsh-clipboard-menu].dcm-submenu");
+    const inputs = form ? form.querySelectorAll(".dcm-input") : [];
+    check("custom: the form has a name and a url field", inputs.length === 2, "inputs=" + inputs.length);
+    check("custom: the main menu survives so the anchor stays put", !!menuItems(d));
+
+    // Right-clicking the field must not tear the form down.
+    fire(inputs[1], "contextmenu", { clientX: 12, clientY: 12 });
+    await new Promise((res) => setTimeout(res, 10));
+    check("custom: right-click inside the form keeps it open", !!formInput());
+
+    inputs[0].value = "My Search";
+    inputs[1].value = "https://search.example.org/find?q={query}";
+    const save = form.querySelector(".dcm-btn-primary");
+    check("custom: there is a save button", !!save);
+    save.click();
     await new Promise((res) => setTimeout(res, 10));
     check("custom: the template is stored", w.localStorage.getItem("dsh-clipboard-menu.custom") === "https://search.example.org/find?q={query}");
+    check("custom: the name is stored", w.localStorage.getItem("dsh-clipboard-menu.customName") === "My Search");
     check("custom: it becomes the chosen engine", w.localStorage.getItem("dsh-clipboard-menu.engine") === "custom");
-    check("custom: the submenu closes and the menu returns", !submenuItems(d) && !!menuItems(d));
+    check("custom: the form closes and the menu returns", !formInput() && !!menuItems(d));
+
+    menuItems(d)[5].el.dispatchEvent(new w.MouseEvent("mouseenter"));
+    const again = submenuItems(d);
+    check("custom: it is listed under its own name", !!again && again[4].label === "My Search", again ? again.map((i) => i.label).join("/") : "none");
+    check("custom: it is marked as the current one", !!again && again[4].hint === "\u5f53\u524d");
 
     const back = menuItems(d);
-    check("custom: the hint shows its host", !!back && back[4].hint === "search.example.org", back ? "hint=" + back[4].hint : "");
+    check("custom: the search hint shows the name", !!back && back[4].hint === "My Search", back ? "hint=" + back[4].hint : "");
 
     back[4].el.click();
     await new Promise((res) => setTimeout(res, 10));
