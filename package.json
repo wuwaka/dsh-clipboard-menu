@@ -1,6 +1,6 @@
 {
   "name": "dsh-clipboard-menu",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Adds a right-click menu to DeepSeek Harness inside desktop shells that ship no context menu: cut, copy, paste and select all in the composer, plus copy and copy-as-plain-text on selected text elsewhere.",
   "type": "module",
   "license": "MIT",
