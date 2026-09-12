@@ -334,6 +334,12 @@ function check(name, cond, extra) {
     const styleText = (d.getElementById("dsh-clipboard-menu-style") || {}).textContent || "";
     check("custom: the field menu stacks above the form", styleText.indexOf(".dcm-fieldmenu") >= 0 && styleText.indexOf("2147483002") >= 0);
 
+    // Moving the pointer off the form must not take the field menu with it.
+    form.dispatchEvent(new w.MouseEvent("mouseleave"));
+    await new Promise((res) => setTimeout(res, 240));
+    check("custom: leaving the form keeps the field menu open", !!fieldMenuItems(d));
+    check("custom: the form is still there too", !!formInput());
+
     fieldMenu[2].el.click();                       // 粘贴
     await new Promise((res) => setTimeout(res, 10));
     check("custom: paste fills the field", inputs[1].value === "https://search.example.org/find?q={query}", "value=" + JSON.stringify(inputs[1].value));
