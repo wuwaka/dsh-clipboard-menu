@@ -48,6 +48,13 @@ function boot(html, opts) {
     }
   });
 
+  // Optional fixed geometry, so placement (including its flips) is testable:
+  // jsdom reports every rect as zero-sized otherwise.
+  if (opts && opts.rect) {
+    const fixed = Object.assign({ top: 0, left: 0, right: opts.rect.width, bottom: opts.rect.height, x: 0, y: 0 }, opts.rect);
+    w.Element.prototype.getBoundingClientRect = function () { return fixed; };
+  }
+
   let mod;
   w.__ModuleLoader__ = { load: (def) => { mod = def.factory(() => { throw new Error("no require"); }); } };
   w.eval(code);
@@ -334,6 +341,15 @@ function check(name, cond, extra) {
     const styleText = (d.getElementById("dsh-clipboard-menu-style") || {}).textContent || "";
     check("custom: the field menu stacks above the form", styleText.indexOf(".dcm-fieldmenu") >= 0 && styleText.indexOf("2147483002") >= 0);
 
+    // The field menu must follow the cursor from one field to the next.
+    fire(inputs[0], "contextmenu", { clientX: 100, clientY: 300 });
+    const first = d.querySelector("[data-dsh-clipboard-menu].dcm-fieldmenu");
+    const at1 = first ? first.style.left + "," + first.style.top : "none";
+    fire(inputs[1], "contextmenu", { clientX: 140, clientY: 380 });
+    const second = d.querySelector("[data-dsh-clipboard-menu].dcm-fieldmenu");
+    const at2 = second ? second.style.left + "," + second.style.top : "none";
+    check("custom: the field menu follows the cursor", at1 !== "none" && at2 !== "none" && at1 !== at2, at1 + " -> " + at2);
+
     // Moving the pointer off the form must not take the field menu with it.
     form.dispatchEvent(new w.MouseEvent("mouseleave"));
     await new Promise((res) => setTimeout(res, 240));
@@ -381,6 +397,31 @@ function check(name, cond, extra) {
     menuItems(d)[4].el.click();
     await new Promise((res) => setTimeout(res, 10));
     check("engine: english UI guesses google", /google\.com\/search\?q=hello$/.test(getOpened()), "opened=" + JSON.stringify(getOpened()));
+  }
+
+  // ---------- case 13: placement flips instead of pinning to the edge ----------
+  {
+    const { w, d, mod } = boot('<!doctype html><html lang="zh"><body><textarea id="t">hello</textarea></body></html>', { rect: { width: 180, height: 150 } });
+    mod.apply();
+    const ta = d.getElementById("t");
+    ta.focus();
+    ta.setSelectionRange(0, 5);
+    fire(ta, "contextmenu", { clientX: 10, clientY: 10 });
+    menuItems(d)[5].el.dispatchEvent(new w.MouseEvent("mouseenter"));
+    submenuItems(d)[4].el.click();
+    const url = d.querySelectorAll("[data-dsh-clipboard-menu].dcm-submenu .dcm-input")[1];
+
+    fire(url, "contextmenu", { clientX: 200, clientY: 100 });
+    const normal = d.querySelector("[data-dsh-clipboard-menu].dcm-fieldmenu");
+    check("flip: room at the cursor means no shift", normal.style.left === "200px" && normal.style.top === "100px", normal.style.left + "," + normal.style.top);
+
+    fire(url, "contextmenu", { clientX: 200, clientY: 700 });
+    const up = d.querySelector("[data-dsh-clipboard-menu].dcm-fieldmenu");
+    check("flip: no room below flips it above", up.style.top === "550px", "top=" + up.style.top);
+
+    fire(url, "contextmenu", { clientX: 1000, clientY: 200 });
+    const back = d.querySelector("[data-dsh-clipboard-menu].dcm-fieldmenu");
+    check("flip: no room right flips it left", back.style.left === "820px", "left=" + back.style.left);
   }
 
   console.log(results.join("\n"));
