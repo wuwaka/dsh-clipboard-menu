@@ -331,6 +331,8 @@ function check(name, cond, extra) {
     const fieldMenu = fieldMenuItems(d);
     check("custom: right-clicking the field opens a clipboard menu", !!fieldMenu && fieldMenu.length === 4, fieldMenu ? fieldMenu.map((i) => i.label).join("/") : "none");
     check("custom: the form survives that right-click", !!formInput());
+    const styleText = (d.getElementById("dsh-clipboard-menu-style") || {}).textContent || "";
+    check("custom: the field menu stacks above the form", styleText.indexOf(".dcm-fieldmenu") >= 0 && styleText.indexOf("2147483002") >= 0);
 
     fieldMenu[2].el.click();                       // 粘贴
     await new Promise((res) => setTimeout(res, 10));
