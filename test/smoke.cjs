@@ -322,6 +322,7 @@ function check(name, cond, extra) {
     fire(ta, "contextmenu", { clientX: 10, clientY: 10 });
     const row = menuItems(d)[5];
     row.el.dispatchEvent(new w.MouseEvent("mouseenter"));
+    check("custom: nothing to delete before one is saved", !d.querySelector("[data-dsh-clipboard-menu].dcm-submenu .dcm-action"));
     submenuItems(d)[4].el.click();                       // the custom entry
 
     const form = d.querySelector("[data-dsh-clipboard-menu].dcm-submenu");
@@ -385,6 +386,26 @@ function check(name, cond, extra) {
     back[4].el.click();
     await new Promise((res) => setTimeout(res, 10));
     check("custom: {query} is substituted", getOpened() === "https://search.example.org/find?q=hello", "opened=" + JSON.stringify(getOpened()));
+
+    // The saved row grows a delete affordance on hover; deleting clears it all.
+    // (Searching closed the menu, so reopen it first.)
+    ta.focus();
+    ta.setSelectionRange(0, 5);
+    fire(ta, "contextmenu", { clientX: 10, clientY: 10 });
+    menuItems(d)[5].el.dispatchEvent(new w.MouseEvent("mouseenter"));
+    const action = d.querySelector("[data-dsh-clipboard-menu].dcm-submenu .dcm-action");
+    check("custom: the saved row offers a delete affordance", !!action);
+    check("custom: the affordance is labelled", !!action && action.getAttribute("aria-label") === "\u5220\u9664", action ? action.getAttribute("aria-label") : "none");
+    action.click();
+    await new Promise((res) => setTimeout(res, 10));
+    check("custom: deleting clears the template", !w.localStorage.getItem("dsh-clipboard-menu.custom"));
+    check("custom: deleting clears the name", !w.localStorage.getItem("dsh-clipboard-menu.customName"));
+    check("custom: the engine stops being custom", w.localStorage.getItem("dsh-clipboard-menu.engine") !== "custom");
+
+    menuItems(d)[5].el.dispatchEvent(new w.MouseEvent("mouseenter"));
+    const after = submenuItems(d);
+    check("custom: the row falls back to the plain label", !!after && after[4].label === "\u81ea\u5b9a\u4e49", after ? after[4].label : "none");
+    check("custom: and the affordance goes away", !d.querySelector("[data-dsh-clipboard-menu].dcm-submenu .dcm-action"));
   }
 
   // ---------- case 10c: a left-click unwinds the layers above it ----------

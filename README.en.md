@@ -61,6 +61,8 @@ https://search.example.org/find?q={query}
 
 **Enter** or **Save** applies it. Right-clicking either field offers the same cut/copy/paste/select-all menu on its own layer, so pasting a URL never tears the form down — which is why there is no separate Paste button. **Escape** backs out one level rather than closing the whole menu.
 
+A saved custom entry appears in the list under the name you gave it. **Hover it and a trash icon slides in at the far right; one click removes that provider** (the engine falls back to the language guess). The icon only appears when there is something to remove.
+
 **The browser itself needs no configuration.** `window.open` goes through the desktop shell's `shell.openExternal`, which hands the URL to your operating system's default browser — whatever you already set.
 
 Cut and Copy grey out when nothing is selected, and a right-click on read-only content with no selection is passed straight through to the app's own menu. Labels follow the interface language (Chinese / English); colours follow the system light or dark theme.
@@ -127,7 +129,7 @@ npm install --no-save jsdom
 node test/smoke.cjs
 ```
 
-69 assertions: menu rendering, cut/copy disabled without a selection, textarea caret insertion plus the `input` event, the synthetic paste event reaching a `contenteditable` listener, read-only text without a selection not being intercepted, Copy and Copy-as-plain-text on a read-only selection, Copy not stealing focus, the menu surviving a scroll (while an outside mousedown still closes it), the search entry opening the browser with the selection, a Chinese UI defaulting to Baidu and an English one to Google, the hover submenu opening without closing the main menu, a named custom engine appearing in the list, right-clicking a form field opening a clipboard menu without closing the form, pasting into that field, a picked engine being remembered, a custom template's {query} being substituted, one icon per entry, the menu staying uninstalled in a browser, and the force flag opting back in.
+77 assertions: menu rendering, cut/copy disabled without a selection, textarea caret insertion plus the `input` event, the synthetic paste event reaching a `contenteditable` listener, read-only text without a selection not being intercepted, Copy and Copy-as-plain-text on a read-only selection, Copy not stealing focus, the menu surviving a scroll (while an outside mousedown still closes it), the search entry opening the browser with the selection, a Chinese UI defaulting to Baidu and an English one to Google, the hover submenu opening without closing the main menu, a named custom engine appearing in the list, right-clicking a form field opening a clipboard menu without closing the form, pasting into that field, a picked engine being remembered, a custom template's {query} being substituted, one icon per entry, the menu staying uninstalled in a browser, and the force flag opting back in.
 
 ## ⚠️ Limitations
 
