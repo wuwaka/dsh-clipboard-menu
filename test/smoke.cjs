@@ -82,6 +82,10 @@ function submenuItems(d) {
   return readItems(d.querySelector("[data-dsh-clipboard-menu].dcm-submenu"));
 }
 
+function fieldMenuItems(d) {
+  return readItems(d.querySelector("[data-dsh-clipboard-menu].dcm-fieldmenu"));
+}
+
 const results = [];
 function check(name, cond, extra) {
   results.push((cond ? "PASS  " : "FAIL  ") + name + (extra ? "   [" + extra + "]" : ""));
@@ -300,7 +304,7 @@ function check(name, cond, extra) {
 
   // ---------- case 10b: a named custom search URL ----------
   {
-    const { w, d, mod, getOpened } = boot('<!doctype html><html lang="zh"><body><textarea id="t">hello</textarea></body></html>');
+    const { w, d, mod, getOpened, setClip } = boot('<!doctype html><html lang="zh"><body><textarea id="t">hello</textarea></body></html>');
     mod.apply();
     const ta = d.getElementById("t");
     ta.focus();
@@ -318,13 +322,24 @@ function check(name, cond, extra) {
     check("custom: the form has a name and a url field", inputs.length === 2, "inputs=" + inputs.length);
     check("custom: the main menu survives so the anchor stays put", !!menuItems(d));
 
-    // Right-clicking the field must not tear the form down.
+    // Right-clicking the URL field offers the same clipboard menu, on its own
+    // layer, so the form survives and a URL can be pasted straight in.
+    inputs[1].focus();
+    inputs[1].setSelectionRange(0, 0);
+    setClip("https://search.example.org/find?q={query}");
     fire(inputs[1], "contextmenu", { clientX: 12, clientY: 12 });
+    const fieldMenu = fieldMenuItems(d);
+    check("custom: right-clicking the field opens a clipboard menu", !!fieldMenu && fieldMenu.length === 4, fieldMenu ? fieldMenu.map((i) => i.label).join("/") : "none");
+    check("custom: the form survives that right-click", !!formInput());
+
+    fieldMenu[2].el.click();                       // 粘贴
     await new Promise((res) => setTimeout(res, 10));
-    check("custom: right-click inside the form keeps it open", !!formInput());
+    check("custom: paste fills the field", inputs[1].value === "https://search.example.org/find?q={query}", "value=" + JSON.stringify(inputs[1].value));
+    check("custom: the field menu closes", !fieldMenuItems(d));
+    check("custom: the form is still there after pasting", !!formInput());
 
     inputs[0].value = "My Search";
-    inputs[1].value = "https://search.example.org/find?q={query}";
+
     const save = form.querySelector(".dcm-btn-primary");
     check("custom: there is a save button", !!save);
     save.click();
