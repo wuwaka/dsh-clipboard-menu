@@ -386,6 +386,44 @@ function check(name, cond, extra) {
     check("custom: {query} is substituted", getOpened() === "https://search.example.org/find?q=hello", "opened=" + JSON.stringify(getOpened()));
   }
 
+  // ---------- case 10c: a left-click unwinds the layers above it ----------
+  {
+    const { w, d, mod } = boot('<!doctype html><html lang="zh"><body><textarea id="t">hello</textarea></body></html>');
+    mod.apply();
+    const ta = d.getElementById("t");
+    ta.focus();
+    ta.setSelectionRange(0, 5);
+    const formFields = () => d.querySelectorAll("[data-dsh-clipboard-menu].dcm-submenu .dcm-input");
+    const openForm = () => {
+      fire(ta, "contextmenu", { clientX: 10, clientY: 10 });
+      menuItems(d)[5].el.dispatchEvent(new w.MouseEvent("mouseenter"));
+      submenuItems(d)[4].el.click();
+      return formFields();
+    };
+    const mousedown = (el) => el.dispatchEvent(new w.MouseEvent("mousedown", { bubbles: true }));
+
+    let fields = openForm();
+    fire(fields[1], "contextmenu", { clientX: 12, clientY: 12 });
+    check("dismiss: the field menu is up", !!fieldMenuItems(d));
+
+    mousedown(fields[0]);
+    await new Promise((res) => setTimeout(res, 10));
+    check("dismiss: clicking the form closes only the field menu", !fieldMenuItems(d) && !!formFields().length && !!menuItems(d));
+
+    fire(formFields()[1], "contextmenu", { clientX: 12, clientY: 12 });
+    check("dismiss: right-clicking brings it back", !!fieldMenuItems(d));
+    mousedown(menuItems(d)[0].el);
+    await new Promise((res) => setTimeout(res, 10));
+    check("dismiss: clicking the main menu closes the layers above it", !fieldMenuItems(d) && !submenuItems(d) && !!menuItems(d));
+
+    fields = openForm();
+    fire(fields[1], "contextmenu", { clientX: 12, clientY: 12 });
+    check("dismiss: up once more", !!fieldMenuItems(d));
+    mousedown(d.body);
+    await new Promise((res) => setTimeout(res, 10));
+    check("dismiss: an outside click closes every layer", !fieldMenuItems(d) && !submenuItems(d) && !menuItems(d));
+  }
+
   // ---------- case 11: an english UI guesses google ----------
   {
     const { d, mod, getOpened } = boot('<!doctype html><html lang="en"><body><textarea id="t">hello</textarea></body></html>');
